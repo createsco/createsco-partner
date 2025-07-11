@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Shield, Camera } from "lucide-react"
 import Link from "next/link"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://pixisphere-backend-t2l9.onrender.com/api/v1"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string
 
 export default function AdminSetupPage() {
   const { adminUser, loading } = useAdminAuth()

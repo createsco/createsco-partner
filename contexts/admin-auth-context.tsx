@@ -17,7 +17,7 @@ interface AdminAuthContextType {
 const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined)
 
 // Use the same API base URL as the main API client
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://pixisphere-backend-t2l9.onrender.com/api/v1"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [adminUser, setAdminUser] = useState<User | null>(null)

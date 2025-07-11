@@ -1,6 +1,6 @@
 import { getCurrentToken } from "./auth"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://pixisphere-backend-t2l9.onrender.com/api/v1"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string
 
 export interface ApiResponse<T = any> {
   success: boolean
@@ -181,7 +181,8 @@ class ApiClient {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 10000)
 
-      const response = await fetch("https://pixisphere-backend-t2l9.onrender.com/health", {
+      const baseDomain = API_BASE_URL.replace(/\/api\/v[0-9]+.*/, "")
+      const response = await fetch(`${baseDomain}/health`, {
         method: "GET",
         headers: {
           Accept: "*/*",
