@@ -8,13 +8,13 @@ interface OnboardingContextType {
   step: number
   progress: number
   onboardingStatus: string
-  partnerData: any
+  partnerData: unknown
   loading: boolean
   error: string | null
   goToStep: (step: number) => void
-  updateBasicInfo: (data: any) => Promise<void>
-  addService: (data: any) => Promise<void>
-  updateLocations: (data: any) => Promise<void>
+  updateBasicInfo: (data: unknown) => Promise<void>
+  addService: (data: unknown) => Promise<void>
+  updateLocations: (data: unknown) => Promise<void>
   uploadPortfolio: (urls: string[]) => Promise<void>
   uploadDocuments: (urls: string[], docNames: string[]) => Promise<void>
   completeOnboarding: () => Promise<void>
@@ -39,7 +39,7 @@ export const OnboardingProvider = ({ children }: OnboardingProviderProps) => {
   const [step, setStep] = useState(1)
   const [progress, setProgress] = useState(0)
   const [onboardingStatus, setOnboardingStatus] = useState("incomplete")
-  const [partnerData, setPartnerData] = useState<any>({})
+  const [partnerData, setPartnerData] = useState<unknown>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { user } = useAuth()
@@ -58,8 +58,8 @@ export const OnboardingProvider = ({ children }: OnboardingProviderProps) => {
         setOnboardingStatus(response.data.onboardingStatus || "incomplete")
         setPartnerData(response.data.profile || {})
       }
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : String(error))
       console.error("Error fetching onboarding status:", error)
     } finally {
       setLoading(false)
@@ -74,7 +74,7 @@ export const OnboardingProvider = ({ children }: OnboardingProviderProps) => {
     setStep(newStep)
   }
 
-  const updateBasicInfo = async (data: any) => {
+  const updateBasicInfo = async (data: unknown) => {
     try {
       setError(null)
       const response = await apiClient.updateBasicInfo(data)
@@ -84,13 +84,13 @@ export const OnboardingProvider = ({ children }: OnboardingProviderProps) => {
         setProgress(response.data?.onboardingProgress || progress)
         setStep(2) // Move to next step
       }
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : String(error))
       throw error
     }
   }
 
-  const addService = async (data: any) => {
+  const addService = async (data: unknown) => {
     try {
       setError(null)
       const response = await apiClient.addService(data)
@@ -101,13 +101,13 @@ export const OnboardingProvider = ({ children }: OnboardingProviderProps) => {
         // Refresh to get updated services list
         await refreshStatus()
       }
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : String(error))
       throw error
     }
   }
 
-  const updateLocations = async (data: any) => {
+  const updateLocations = async (data: unknown) => {
     try {
       setError(null)
       const response = await apiClient.updateLocations(data)
@@ -117,8 +117,8 @@ export const OnboardingProvider = ({ children }: OnboardingProviderProps) => {
         setProgress(response.data?.onboardingProgress || progress)
         setStep(4) // Move to next step
       }
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : String(error))
       throw error
     }
   }
@@ -136,8 +136,8 @@ export const OnboardingProvider = ({ children }: OnboardingProviderProps) => {
         setStep(5) // Move to next step
         console.log("✅ Portfolio URLs saved to backend successfully")
       }
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : String(error))
       console.error("❌ Error saving portfolio URLs to backend:", error)
       throw error
     }
@@ -155,8 +155,8 @@ export const OnboardingProvider = ({ children }: OnboardingProviderProps) => {
         setProgress(response.data?.onboardingProgress || progress)
         console.log("✅ Document URLs saved to backend successfully")
       }
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : String(error))
       console.error("❌ Error saving document URLs to backend:", error)
       throw error
     }
@@ -171,8 +171,8 @@ export const OnboardingProvider = ({ children }: OnboardingProviderProps) => {
         setOnboardingStatus("pending_verification")
         setProgress(100)
       }
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : String(error))
       throw error
     }
   }

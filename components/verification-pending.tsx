@@ -13,7 +13,7 @@ import { apiClient } from "@/lib/api"
 
 export function VerificationPending() {
   const { user, loading: authLoading, signOut } = useAuth()
-  const [partnerData, setPartnerData] = useState<any>(null)
+  const [partnerData, setPartnerData] = useState<unknown>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
@@ -104,7 +104,7 @@ export function VerificationPending() {
   }
 
   const documents = partnerData.profile?.documents || []
-  const approvedDocs = documents.filter((doc: any) => doc.status === "approved").length
+  const approvedDocs = documents.filter((doc: unknown) => typeof doc === 'object' && doc !== null && 'status' in doc && (doc as { status: string }).status === "approved").length
   const totalDocs = documents.length
   const verificationProgress = totalDocs > 0 ? (approvedDocs / totalDocs) * 100 : 0
 
@@ -215,17 +215,17 @@ export function VerificationPending() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {documents.map((doc: any, index: number) => (
+                {documents.map((doc: unknown, index: number) => (
                   <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center space-x-3">
-                      {getDocumentIcon(doc.status)}
+                      {getDocumentIcon(typeof doc === 'object' && doc !== null && 'status' in doc ? (doc as { status: string }).status : 'unknown')}
                       <div>
-                        <h4 className="font-medium">{doc.docName}</h4>
-                        {doc.reviewNotes && <p className="text-sm text-gray-600">{doc.reviewNotes}</p>}
-                        {doc.rejectionReason && <p className="text-sm text-red-600">Reason: {doc.rejectionReason}</p>}
+                        <h4 className="font-medium">{typeof doc === 'object' && doc !== null && 'docName' in doc ? (doc as { docName: string }).docName : 'N/A'}</h4>
+                        {typeof doc === 'object' && doc !== null && 'reviewNotes' in doc && (doc as { reviewNotes: string }).reviewNotes && <p className="text-sm text-gray-600">{(doc as { reviewNotes: string }).reviewNotes}</p>}
+                        {typeof doc === 'object' && doc !== null && 'rejectionReason' in doc && (doc as { rejectionReason: string }).rejectionReason && <p className="text-sm text-red-600">Reason: {(doc as { rejectionReason: string }).rejectionReason}</p>}
                       </div>
                     </div>
-                    <Badge className={getDocumentStatusColor(doc.status)}>{doc.status}</Badge>
+                    <Badge className={getDocumentStatusColor(typeof doc === 'object' && doc !== null && 'status' in doc ? (doc as { status: string }).status : 'unknown')}>{(doc as { status: string }).status}</Badge>
                   </div>
                 ))}
               </div>

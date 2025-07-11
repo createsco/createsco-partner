@@ -38,7 +38,6 @@ import {
   Trash2,
   CheckCircle,
   Upload,
-  Camera,
   AlertCircle,
   Lock,
   Shield,
@@ -86,12 +85,12 @@ export function ProfileManager() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [partnerData, setPartnerData] = useState<any>(null)
+  const [partnerData, setPartnerData] = useState<unknown>(null)
   const [profileCompletion, setProfileCompletion] = useState(0)
 
   // Service form state - Updated to match backend validation
   const [serviceDialogOpen, setServiceDialogOpen] = useState(false)
-  const [editingService, setEditingService] = useState<any>(null)
+  const [editingService, setEditingService] = useState<unknown>(null)
   const [serviceForm, setServiceForm] = useState({
     name: "",
     description: "",
@@ -126,21 +125,18 @@ export function ProfileManager() {
   // Document upload state
   const [uploadingDocuments, setUploadingDocuments] = useState(false)
 
-  // Portfolio upload state
-  const [uploadingPortfolio, setUploadingPortfolio] = useState(false)
-
   // Check if partner is verified - Updated to match actual API response
-  const isVerified = partnerData?.verified === true && partnerData?.onboardingStatus === "verified"
+  const isVerified = (partnerData as any)?.verified === true && (partnerData as any)?.onboardingStatus === "verified"
   const isPending =
-    partnerData?.onboardingStatus === "pending_verification" ||
-    partnerData?.onboardingStatus === "pending" ||
-    (partnerData?.onboardingStep < 5 && !partnerData?.verified)
-  const isRejected = partnerData?.onboardingStatus === "rejected"
+    (partnerData as any)?.onboardingStatus === "pending_verification" ||
+    (partnerData as any)?.onboardingStatus === "pending" ||
+    ((partnerData as any)?.onboardingStep < 5 && !(partnerData as any)?.verified)
+  const isRejected = (partnerData as any)?.onboardingStatus === "rejected"
 
   console.log("🔍 Verification Status Debug:", {
-    verified: partnerData?.verified,
-    onboardingStatus: partnerData?.onboardingStatus,
-    onboardingStep: partnerData?.onboardingStep,
+    verified: (partnerData as any)?.verified,
+    onboardingStatus: (partnerData as any)?.onboardingStatus,
+    onboardingStep: (partnerData as any)?.onboardingStep,
     isVerified,
     isPending,
     isRejected,
@@ -162,17 +158,17 @@ export function ProfileManager() {
       }
 
       // Check services
-      if (partnerData.services && partnerData.services.length > 0) {
+      if ((partnerData as any).services && (partnerData as any).services.length > 0) {
         completedSections++
       }
 
       // Check portfolio
-      if (partnerData.portfolio && partnerData.portfolio.length > 0) {
+      if ((partnerData as any).portfolio && (partnerData as any).portfolio.length > 0) {
         completedSections++
       }
 
       // Check documents
-      if (partnerData.documents && partnerData.documents.length > 0) {
+      if ((partnerData as any).documents && (partnerData as any).documents.length > 0) {
         completedSections++
       }
 
@@ -194,9 +190,9 @@ export function ProfileManager() {
       if (response.success && response.data) {
         console.log("✅ Partner profile fetched:", response.data.partner)
         console.log("🔍 Verification fields:", {
-          verified: response.data.partner.verified,
-          onboardingStatus: response.data.partner.onboardingStatus,
-          onboardingStep: response.data.partner.onboardingStep,
+          verified: (response.data.partner as any).verified,
+          onboardingStatus: (response.data.partner as any).onboardingStatus,
+          onboardingStep: (response.data.partner as any).onboardingStep,
         })
         setPartnerData(response.data.partner)
 
@@ -264,7 +260,7 @@ export function ProfileManager() {
     }
   }
 
-  const handleServiceFormChange = (field: string, value: any) => {
+  const handleServiceFormChange = (field: string, value: unknown) => {
     setServiceForm((prev) => ({
       ...prev,
       [field]: value,
@@ -281,14 +277,14 @@ export function ProfileManager() {
     setEditingService(null)
   }
 
-  const openServiceDialog = (service: any = null) => {
+  const openServiceDialog = (service: unknown = null) => {
     if (service) {
       setEditingService(service)
       setServiceForm({
-        name: service.name,
-        description: service.description,
-        basePrice: service.basePrice,
-        priceUnit: service.priceUnit,
+        name: (service as any).name,
+        description: (service as any).description,
+        basePrice: (service as any).basePrice,
+        priceUnit: (service as any).priceUnit,
       })
     } else {
       resetServiceForm()
@@ -314,8 +310,8 @@ export function ProfileManager() {
       let response
 
       if (editingService) {
-        console.log("🔄 Updating service:", editingService._id, serviceData)
-        response = await apiClient.updatePartnerService(editingService._id, serviceData)
+        console.log("🔄 Updating service:", (editingService as any)._id, serviceData)
+        response = await apiClient.updatePartnerService((editingService as any)._id, serviceData)
       } else {
         console.log("➕ Adding new service:", serviceData)
         response = await apiClient.addPartnerService(serviceData)
@@ -423,46 +419,6 @@ export function ProfileManager() {
       setError(error.message || "An error occurred while uploading documents")
     } finally {
       setUploadingDocuments(false)
-      // Reset file input
-      event.target.value = ""
-    }
-  }
-
-  const handlePortfolioUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
-    if (!files || files.length === 0) return
-
-    try {
-      setUploadingPortfolio(true)
-      setError(null)
-
-      const formData = new FormData()
-      Array.from(files).forEach((file) => {
-        formData.append("portfolio", file)
-      })
-
-      console.log("📤 Uploading portfolio images...")
-      // Note: You'll need to add this endpoint to your API client
-      const response = await apiClient.uploadPartnerPortfolio(formData)
-
-      if (response.success) {
-        console.log("✅ Portfolio images uploaded successfully")
-        // Refresh partner profile to get updated portfolio
-        await fetchPartnerProfile()
-        setSuccess("Portfolio images uploaded successfully")
-
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          setSuccess(null)
-        }, 3000)
-      } else {
-        throw new Error(response.message || "Failed to upload portfolio images")
-      }
-    } catch (error: any) {
-      console.error("❌ Error uploading portfolio:", error)
-      setError(error.message || "An error occurred while uploading portfolio images")
-    } finally {
-      setUploadingPortfolio(false)
       // Reset file input
       event.target.value = ""
     }
@@ -592,16 +548,16 @@ export function ProfileManager() {
                 <CardContent className="space-y-6">
                   <div className="flex flex-col md:flex-row md:items-center md:space-x-4">
                     <Avatar className="h-20 w-20">
-                      <AvatarImage src={partnerData?.userId?.profilePic || "/placeholder.svg"} />
+                      <AvatarImage src={(partnerData as any)?.userId?.profilePic || "/placeholder.svg"} />
                       <AvatarFallback className="text-lg">
-                        {partnerData?.userId?.username?.charAt(0)?.toUpperCase() || "U"}
+                        {(partnerData as any)?.userId?.username?.charAt(0)?.toUpperCase() || "U"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="mt-4 md:mt-0">
-                      <h3 className="text-lg font-semibold">{partnerData?.userId?.username}</h3>
+                      <h3 className="text-lg font-semibold">{(partnerData as any)?.userId?.username}</h3>
                       <div className="flex items-center space-x-2 text-sm text-gray-500">
                         <Mail className="h-4 w-4" />
-                        <span>{partnerData?.userId?.email}</span>
+                        <span>{(partnerData as any)?.userId?.email}</span>
                       </div>
                       <Button size="sm" variant="outline" className="mt-2 bg-transparent" disabled={isVerified}>
                         <Upload className="mr-2 h-4 w-4" />
@@ -876,9 +832,9 @@ export function ProfileManager() {
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  {partnerData?.services && partnerData.services.length > 0 ? (
+                  {(partnerData as any)?.services && (partnerData as any).services.length > 0 ? (
                     <div className="space-y-4">
-                      {partnerData.services.map((service: any) => (
+                      {(partnerData as any).services.map((service: any) => (
                         <div
                           key={service._id}
                           className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg"
@@ -1063,9 +1019,9 @@ export function ProfileManager() {
                       </div>
                     </div>
 
-                    {partnerData?.portfolio && partnerData.portfolio.length > 0 ? (
+                    {(partnerData as any)?.portfolio && (partnerData as any).portfolio.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {partnerData.portfolio.map((item: any) => (
+                        {(partnerData as any).portfolio.map((item: any) => (
                           <div key={item._id} className="relative group rounded-lg overflow-hidden">
                             <img
                               src={item.imageUrl || "/placeholder.svg"}
@@ -1177,9 +1133,9 @@ export function ProfileManager() {
                       </div>
                     </div>
 
-                    {partnerData?.documents && partnerData.documents.length > 0 ? (
+                    {(partnerData as any)?.documents && (partnerData as any).documents.length > 0 ? (
                       <div className="space-y-4">
-                        {partnerData.documents.map((doc: any) => (
+                        {(partnerData as any).documents.map((doc: any) => (
                           <div key={doc._id} className="flex items-center justify-between p-4 border rounded-lg">
                             <div className="flex items-center space-x-3">
                               <div className="p-2 bg-gray-100 rounded">

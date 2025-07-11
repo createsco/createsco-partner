@@ -49,9 +49,14 @@ export const signIn = async (email: string, password: string): Promise<AuthUser 
       displayName: user.displayName,
       emailVerified: user.emailVerified,
     }
-  } catch (error: any) {
-    console.error("❌ Auth: Sign in failed:", error)
-    throw new Error(error.message || "Login failed")
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("❌ Auth: Sign in failed:", error)
+      throw new Error(error.message || "Login failed")
+    } else {
+      console.error("❌ Auth: Sign in failed:", error)
+      throw new Error("Login failed")
+    }
   }
 }
 
@@ -72,9 +77,14 @@ export const signUp = async (email: string, password: string): Promise<AuthUser>
       email: user.email,
       displayName: user.displayName,
     }
-  } catch (error: any) {
-    console.error("❌ Auth: Sign up failed:", error)
-    throw new Error(error.message || "Registration failed")
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("❌ Auth: Sign up failed:", error)
+      throw new Error(error.message || "Registration failed")
+    } else {
+      console.error("❌ Auth: Sign up failed:", error)
+      throw new Error("Registration failed")
+    }
   }
 }
 
@@ -86,9 +96,14 @@ export const signOut = async (): Promise<void> => {
     Cookies.remove("authToken")
     localStorage.removeItem("firebaseToken")
     console.log("✅ Auth: User signed out successfully")
-  } catch (error: any) {
-    console.error("❌ Auth: Sign out failed:", error)
-    throw new Error(error.message || "Logout failed")
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("❌ Auth: Sign out failed:", error)
+      throw new Error(error.message || "Logout failed")
+    } else {
+      console.error("❌ Auth: Sign out failed:", error)
+      throw new Error("Logout failed")
+    }
   }
 }
 
@@ -108,9 +123,14 @@ export const getCurrentToken = async (forceRefresh = false): Promise<string | nu
     }
     console.log("⚠️ Auth: No current user found")
     return null
-  } catch (error: any) {
-    console.error("❌ Auth: Error getting token:", error)
-    return null
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("❌ Auth: Error getting token:", error)
+      return null
+    } else {
+      console.error("❌ Auth: Error getting token:", error)
+      return null
+    }
   }
 }
 
@@ -150,9 +170,14 @@ export const resendEmailVerification = async (): Promise<void> => {
     console.log("📧 Auth: Resending email verification...")
     await sendEmailVerification(user)
     console.log("✅ Auth: Email verification sent successfully")
-  } catch (error: any) {
-    console.error("❌ Auth: Failed to resend email verification:", error)
-    throw new Error(error.message || "Failed to send verification email")
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("❌ Auth: Failed to resend email verification:", error)
+      throw new Error(error.message || "Failed to send verification email")
+    } else {
+      console.error("❌ Auth: Failed to resend email verification:", error)
+      throw new Error("Failed to send verification email")
+    }
   }
 }
 
@@ -174,9 +199,14 @@ export const reloadUser = async (): Promise<void> => {
       emailVerified: freshUser?.emailVerified,
       uid: freshUser?.uid,
     })
-  } catch (error: any) {
-    console.error("❌ Auth: Failed to reload user:", error)
-    throw new Error(error.message || "Failed to reload user data")
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("❌ Auth: Failed to reload user:", error)
+      throw new Error(error.message || "Failed to reload user data")
+    } else {
+      console.error("❌ Auth: Failed to reload user:", error)
+      throw new Error("Failed to reload user data")
+    }
   }
 }
 
@@ -204,9 +234,14 @@ export const refreshTokenAndCookies = async (): Promise<void> => {
     console.log("✅ Auth: Token refreshed and cookies updated", {
       emailVerified: user.emailVerified,
     })
-  } catch (error: any) {
-    console.error("❌ Auth: Failed to refresh token:", error)
-    throw new Error(error.message || "Failed to refresh token")
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("❌ Auth: Failed to refresh token:", error)
+      throw new Error(error.message || "Failed to refresh token")
+    } else {
+      console.error("❌ Auth: Failed to refresh token:", error)
+      throw new Error("Failed to refresh token")
+    }
   }
 }
 
@@ -249,18 +284,24 @@ export const sendPasswordReset = async (email: string): Promise<void> => {
     console.log("🔑 Auth: Sending password reset email...")
     await sendPasswordResetEmail(auth, email)
     console.log("✅ Auth: Password reset email sent successfully")
-  } catch (error: any) {
-    console.error("❌ Auth: Failed to send password reset email:", error)
-
-    // Handle specific Firebase error codes
-    if (error.code === "auth/user-not-found") {
-      throw new Error("No account found with this email address")
-    } else if (error.code === "auth/invalid-email") {
-      throw new Error("Please enter a valid email address")
-    } else if (error.code === "auth/too-many-requests") {
-      throw new Error("Too many attempts. Please try again later")
-    } else {
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("\u274c Auth: Failed to send password reset email:", error)
+      // Handle specific Firebase error codes
+      if (typeof (error as { code?: string }).code === "string") {
+        const code = (error as { code?: string }).code;
+        if (code === "auth/user-not-found") {
+          throw new Error("No account found with this email address")
+        } else if (code === "auth/invalid-email") {
+          throw new Error("Please enter a valid email address")
+        } else if (code === "auth/too-many-requests") {
+          throw new Error("Too many attempts. Please try again later")
+        }
+      }
       throw new Error(error.message || "Failed to send password reset email")
+    } else {
+      console.error("\u274c Auth: Failed to send password reset email:", error)
+      throw new Error("Failed to send password reset email")
     }
   }
 }

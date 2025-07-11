@@ -89,22 +89,19 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       } else {
         throw new Error("Invalid user data received")
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("❌ Admin status check error:", error)
-
       // Remove admin cookies
       Cookies.remove("isAdmin")
       Cookies.remove("authToken")
-
       // Sign out the user if they're not authorized
       try {
         await auth.signOut()
       } catch (signOutError) {
         console.error("Error signing out:", signOutError)
       }
-
       setAdminUser(null)
-      setError(error.message || "Failed to verify admin status. Please try again.")
+      setError(error instanceof Error ? error.message : "Failed to verify admin status. Please try again.")
       return false
     }
   }
@@ -198,18 +195,23 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
       setLoading(false)
       return isAdmin
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("❌ Admin login failed:", error)
-      if (error.code === "auth/user-not-found") {
-        setError("No account found with this email address")
-      } else if (error.code === "auth/wrong-password") {
-        setError("Incorrect password")
-      } else if (error.code === "auth/invalid-email") {
-        setError("Invalid email address")
-      } else if (error.code === "auth/too-many-requests") {
-        setError("Too many failed login attempts. Please try again later.")
+      if (typeof error === 'object' && error !== null && 'code' in error) {
+        const code = (error as { code?: string }).code;
+        if (code === "auth/user-not-found") {
+          setError("No account found with this email address")
+        } else if (code === "auth/wrong-password") {
+          setError("Incorrect password")
+        } else if (code === "auth/invalid-email") {
+          setError("Invalid email address")
+        } else if (code === "auth/too-many-requests") {
+          setError("Too many failed login attempts. Please try again later.")
+        } else {
+          setError(typeof error === 'object' && error !== null && 'message' in error && typeof (error as { message?: string }).message === 'string' ? (error as { message: string }).message : "Login failed")
+        }
       } else {
-        setError(error.message || "Login failed")
+        setError(error instanceof Error ? error.message : "Login failed")
       }
       setLoading(false)
       return false
@@ -226,9 +228,9 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       setAdminUser(null)
       setSetupRequired(null)
       console.log("✅ Admin logout successful")
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("❌ Admin logout failed:", error)
-      setError(error.message)
+      setError(error instanceof Error ? error.message : "Logout failed")
     }
   }
 

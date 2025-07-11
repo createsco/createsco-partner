@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/auth-context"
 
 export function useApi<T>(
   apiCall: () => Promise<{ success: boolean; data?: T; error?: string }>,
-  dependencies: any[] = [],
+  dependencies: unknown[] = [],
 ) {
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(true)
@@ -26,8 +26,8 @@ export function useApi<T>(
       } else {
         setError(response.error || "Failed to fetch data")
       }
-    } catch (err: any) {
-      setError(err.message || "An error occurred")
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err) || "An error occurred")
     } finally {
       setLoading(false)
     }

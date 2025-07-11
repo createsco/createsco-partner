@@ -2,7 +2,7 @@ import { getCurrentToken } from "./auth"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   message?: string
   data?: T
@@ -173,7 +173,7 @@ class ApiClient {
   }
 
   // Health check endpoint - direct call without API prefix
-  async healthCheck(): Promise<any> {
+  async healthCheck(): Promise<unknown> {
     try {
       console.log("🏥 Testing health check...")
       console.log("🌐 Current domain:", window.location.origin)
@@ -211,7 +211,7 @@ class ApiClient {
   }
 
   // Authentication endpoints
-  async register(userData: any): Promise<ApiResponse> {
+  async register(userData: unknown): Promise<ApiResponse> {
     console.log("🚀 Registering user with data:", userData)
     return this.request("/auth/register", {
       method: "POST",
@@ -365,11 +365,11 @@ class ApiClient {
   }
 
   // Partner profile management (for partners themselves) - Updated to match backend routes
-  async getPartnerProfile(): Promise<ApiResponse<{ partner: any }>> {
+  async getPartnerProfile(): Promise<ApiResponse<{ partner: unknown }>> {
     return this.request("/partners/me")
   }
 
-  async updatePartnerProfile(data: any): Promise<ApiResponse<{ partner: any }>> {
+  async updatePartnerProfile(data: unknown): Promise<ApiResponse<{ partner: unknown }>> {
     return this.request("/partners/me", {
       method: "PATCH",
       body: JSON.stringify(data),
@@ -377,21 +377,21 @@ class ApiClient {
   }
 
   // Service management (for partners themselves) - Updated to match backend routes
-  async addPartnerService(data: any): Promise<ApiResponse<{ partner: any }>> {
+  async addPartnerService(data: unknown): Promise<ApiResponse<{ partner: unknown }>> {
     return this.request("/partners/services", {
       method: "POST",
       body: JSON.stringify(data),
     })
   }
 
-  async updatePartnerService(serviceId: string, data: any): Promise<ApiResponse<{ partner: any }>> {
+  async updatePartnerService(serviceId: string, data: unknown): Promise<ApiResponse<{ partner: unknown }>> {
     return this.request(`/partners/services/${serviceId}`, {
       method: "PATCH",
       body: JSON.stringify(data),
     })
   }
 
-  async deletePartnerService(serviceId: string): Promise<ApiResponse<{ partner: any }>> {
+  async deletePartnerService(serviceId: string): Promise<ApiResponse<{ partner: unknown }>> {
     return this.request(`/partners/services/${serviceId}`, {
       method: "DELETE",
     })
@@ -404,7 +404,7 @@ class ApiClient {
     description?: string
     category: string
     tags?: string[]
-  }): Promise<ApiResponse<{ portfolioItem: any }>> {
+  }): Promise<ApiResponse<{ portfolioItem: unknown }>> {
     console.log("📤 API: Adding portfolio item:", data)
     return this.request("/partners/portfolio", {
       method: "POST",
@@ -420,7 +420,7 @@ class ApiClient {
       category?: string
       tags?: string[]
     },
-  ): Promise<ApiResponse<{ portfolioItem: any }>> {
+  ): Promise<ApiResponse<{ portfolioItem: unknown }>> {
     console.log("📤 API: Updating portfolio item:", portfolioId, data)
     return this.request(`/partners/portfolio/${portfolioId}`, {
       method: "PATCH",
@@ -436,7 +436,7 @@ class ApiClient {
   }
 
   // Document management (for partners themselves) - Updated to match backend routes
-  async uploadPartnerDocuments(formData: FormData): Promise<ApiResponse<{ documents: any[] }>> {
+  async uploadPartnerDocuments(formData: FormData): Promise<ApiResponse<{ documents: unknown[] }>> {
     const headers = await this.getAuthHeaders()
     delete (headers as any)["Content-Type"] // Let browser set content type for FormData
 
@@ -448,7 +448,7 @@ class ApiClient {
   }
 
   // Portfolio management (for partners themselves) - New endpoint
-  async uploadPartnerPortfolio(formData: FormData): Promise<ApiResponse<{ portfolio: any[] }>> {
+  async uploadPartnerPortfolio(formData: FormData): Promise<ApiResponse<{ portfolio: unknown[] }>> {
     const headers = await this.getAuthHeaders()
     delete (headers as any)["Content-Type"] // Let browser set content type for FormData
 
@@ -459,7 +459,7 @@ class ApiClient {
     })
   }
 
-  async deletePartnerPortfolioItem(portfolioId: string): Promise<ApiResponse<{ partner: any }>> {
+  async deletePartnerPortfolioItem(portfolioId: string): Promise<ApiResponse<{ partner: unknown }>> {
     return this.request(`/partners/portfolio/${portfolioId}`, {
       method: "DELETE",
     })
@@ -609,11 +609,7 @@ class ApiClient {
       const token = localStorage.getItem("firebaseToken")
       if (!token) return null
 
-      const eventSource = new EventSource(`${API_BASE_URL}/notifications/stream`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      const eventSource = new EventSource(`${API_BASE_URL}/notifications/stream?token=${encodeURIComponent(token)}`)
 
       return eventSource
     } catch (error) {
